@@ -1,0 +1,54 @@
+#SAP system backend configuration
+sap:
+  #Replace with respective value
+  username: "xxxxx"
+  #Replace with respective value
+  password: "xxxxx"
+  sysnum: "00"
+  clientid: "030"
+  
+#Replace with respective sap host
+  host: "xxxxx"
+  gateway-host: "xxxxx"
+  gateway-service: "3300"
+  program-id: "MULE_IDOC_LISTENER"
+  idoc-type: "ORDERS05"
+  connection-count: "1"
+  #BAPI function to be called to get data
+  bapi: 
+    update-sales-order: "BAPI_SALESORDER_CHANGE"
+    bapi-transaction-commit: "BAPI_TRANSACTION_COMMIT"
+# Sales Order Orchestration API Endpoint Configurations
+order-prc-api:
+  base-path: "/order/v1"
+  port: "443"
+  response-timeout: "60000"
+  protocol: "HTTPS"
+  #Replace with respective value
+  client-id: "xxxxxxxxxxxxx"
+  #Replace with respective value
+  client-secret: "xxxxxxxxxxxx"
+  #Replace with respective application hostname
+  host: "xxxxx"
+
+# Reconnect configuration      
+reconnect:
+  # SAP reconnection strategy
+  sap:
+    frequency: "3000"
+    count: "3"  
+application:
+  source: "SAP"
+  destination: "OBO"
+
+#Until Successful retries config
+until-successful:
+  interval: "2000"
+  count: "1"
+#JIRA Config
+jira-utility:
+  issue-type: "Bug"
+  priority: "1"
+  #Replace with respective value
+  project-key: "xxxxx"
+  label: "MuleError"

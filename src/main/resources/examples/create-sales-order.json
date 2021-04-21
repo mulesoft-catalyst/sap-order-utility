@@ -1,0 +1,108 @@
+{
+  "salesOrderHeader": {
+    "sourceSystem": "XXC",
+    "targetSystem": "XCV",
+    "orderId": "988813",
+    "orderType": "XXCX",
+    "salesOrg": "XCX",
+    "distributionChannel": "00",
+    "division": "00",
+    "salesGroup": "TBA",
+    "salesOffice": "TBA",
+    "custPurchaseOrderNo": "PCG478188",
+    "custReqDeliveryDate": "2021-05-23",
+    "purchaseDate": "2021-05-23",
+    "incoTerms": "TBA",
+    "priceDate": "2021-05-23",
+    "quotationValidFrom": "2021-05-23",
+    "quotationValidTo": "2021-05-23",
+    "ctValidFrom": "2021-05-23",
+    "ctValidTo": "2021-05-23",
+    "purchaseOrderDate": "2021-05-23",
+    "documentDate": "2021-05-23",
+    "warDate": "2021-05-23",
+    "shipCondition": "EE",
+    "dunCount": "12",
+    "exRateFI": "0",
+    "addValDays": "10",
+    "fixedValDate": "2021-05-23",
+    "exchangeRate": "1",
+    "billDate": "2021-05-23",
+    "servDate": "2021-05-23",
+    "currency": "USD",
+    "cmlQuantityDate": "2021-05-23",
+    "exRateFixedV": "0",
+    "exRateV": "0",
+    "lineItem": "2343",
+    "campaign": "12",
+    "postingDate": "2021-05-23",
+    "orderReason": "TBA"
+  },
+  "salesOrderItem": [
+    {
+      "itemNumber": "000011",
+      "material": "SA101202",
+      "plant": "SAPB",
+      "billDate": "01/20/2021",
+      "targetQuantity": "100020",
+      "salesUnit": "M",
+      "currency": "USD",
+      "itemCategory": "US",
+      "conditionType": "95234",
+      "conditionValue": "1767567897"
+    },
+    {
+      "itemNumber": "000012",
+      "material": "SA101202",
+      "plant": "SAPB",
+      "billDate": "01/20/2021",
+      "targetQuantity": "100020",
+      "salesUnit": "M",
+      "currency": "USD",
+      "itemCategory": "US",
+      "conditionType": "95234",
+      "conditionValue": "1767567897"
+    }
+  ],
+  "salesOrderPartner": {
+    "partnerRole": "AG",
+    "partnerNumber": "031AMO",
+    "addressLink": "WE",
+    "partnerAddresses": [
+      {
+        "addressNum": "WE",
+        "name": "Tester",
+        "street": "415 Mission Street",
+        "country": "US",
+        "postalCode1": "94538",
+        "city": "San Francisco",
+        "region": "US",
+        "telNumber1": "1767567897",
+        "email": "test@test.com"
+      },
+      {
+        "addressNum": "WE",
+        "name": "Tester",
+        "street": "415 Mission Street",
+        "country": "US",
+        "postalCode1": "94538",
+        "city": "San Francisco",
+        "region": "US",
+        "telNumber1": "1767567897",
+        "email": "test@test.com"
+      }
+    ]
+  },
+  "salesOrderSchedule": [
+    {
+      "itemNumber": "000011",
+      "orderQuantity": "100",
+      "orderQuantityForItem": "100"
+    },
+    {
+      "itemNumber": "000012",
+      "orderQuantity": "100",
+      "orderQuantityForItem": "100"
+    }
+  ]
+}

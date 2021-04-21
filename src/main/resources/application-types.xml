@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="ORDER05" format="xml">
+      <types:example format="xml" element="ORDERS05" location="examples/IDOC_ORDER_05.xml"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#94316217-80c0-4a94-a81a-6f7a88fe9a2f">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="ORDER05"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#ca1776e1-816f-4ebc-8de9-d4309c64a181">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="ORDER05"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#4e0ee17a-c491-4c08-a496-98242ca8d566"/>
+</types:mule>

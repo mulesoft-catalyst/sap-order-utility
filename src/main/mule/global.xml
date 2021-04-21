@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:jira-utility-api="http://www.mulesoft.org/schema/mule/jira-utility-api"
+	xmlns:sales-order-orchestration-api="http://www.mulesoft.org/schema/mule/sales-order-orchestration-api"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/sales-order-orchestration-api http://www.mulesoft.org/schema/mule/sales-order-orchestration-api/current/mule-sales-order-orchestration-api.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/jira-utility-api http://www.mulesoft.org/schema/mule/jira-utility-api/current/mule-jira-utility-api.xsd">
+    
+    <configuration-properties doc:name="Application Configuration properties" doc:id="220f4d86-205a-4a14-98a5-3479353e8c3f" file="config/config-${env}.yaml" />
+    <sap:sap-config name="SAP_Config" doc:name="SAP Config" doc:id="adc170b4-d1d9-42d8-b840-6abb8141e533" useSAPFormat="true">
+        <sap:simple-connection-provider-connection username="${sap.username}" password="${sap.password}" systemNumber="${sap.sysnum}" client="${sap.clientid}" applicationServerHost="${sap.host}" traceFromServerFlag="true" cpicTracingLevel="LEVEL_1" />
+    </sap:sap-config>
+	<global-property doc:name="Global Property" doc:id="1b4ee24e-842a-4424-a382-dd05764b4b59" name="env" value="local" doc:description="Added to avoid dataweave error"/>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="ba41b2b1-f275-454c-be36-06ad2c2fda12" >
+		<http:request-connection host="${order-prc-api.host}" port="${order-prc-api.port}" />
+	</http:request-config>
+   
+    
+</mule>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:sales-order-orchestration-api="http://www.mulesoft.org/schema/mule/sales-order-orchestration-api" xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd
+http://www.mulesoft.org/schema/mule/sales-order-orchestration-api http://www.mulesoft.org/schema/mule/sales-order-orchestration-api/current/mule-sales-order-orchestration-api.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<!-- <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="cc1f141e-801a-4d4c-b118-04f943aac11a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config> -->
+	<flow name="sap-uapi-salesorder-receive" doc:id="77a2ed53-29c6-4791-a889-9a56a9204807" >
+	    <sap:document-listener doc:name="Document listener" doc:id="67509c58-4455-42ef-99ed-2f1c665440c4" config-ref="SAP_Config" gatewayHost="${sap.gateway-host}" programID="${sap.program-id}" idocTypeFilterRegex="${sap.idoc-type}" gatewayService="${sap.gateway-service}" connectionCount="${sap.connection-count}"/>
+		<!-- <http:listener doc:name="Listener" doc:id="7957138a-7e44-4b5d-9328-3b9dae0d8212" config-ref="HTTP_Listener_config" path="/test"/> -->
+		<logger level="INFO" doc:name="Logger" doc:id="ad0efc1c-b482-4b77-bfd7-f741dd2d672f" message="#[payload]"/>
+		<set-variable value="#[payload]" doc:name="Set  Initial Payload In Vars" doc:id="2cf4e267-ae8e-41dd-b21f-e28fd5065fb2" variableName="origPayload" mimeType="application/xml"/>
+		<choice doc:name="Choice" doc:id="b572bdcc-4179-4522-b81a-3def0c494659" >
+			<when expression='#[payload.ORDERS05.IDOC.E1EDK01.ACTION == "ORI"]'>
+				<ee:transform doc:name="Map Create Request" doc:id="6c698d35-1621-417d-b78b-d1064bd40c7a">
+			<ee:message>
+						<ee:set-payload resource="transforms/dwl/create-order.dwl" />
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="d8afd175-053e-483c-b5a2-eacc3e4e165e" message="#[payload]"/>
+				<until-successful doc:name="Until Successful" doc:id="8a5f47f3-d13b-43ac-94b1-da5fa0d44ad5" millisBetweenRetries="${until-successful.interval}" maxRetries="${until-successful.count}">
+					<try doc:name="Try" doc:id="53db5a2b-e763-4cd3-80ea-e8a6e0a149e3" transactionalAction="ALWAYS_BEGIN">
+						<http:request method="PATCH" doc:id="3841b01b-773a-418c-8baf-8c6622ced4fd" doc:name="Invoke Process API" config-ref="HTTP_Request_configuration" path="/"/>
+						<error-handler >
+							<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c9f50808-d890-4267-8c83-c42026493ad9" type="HTTP:BAD_REQUEST, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE">
+								<set-variable value="Create" doc:name="Set Operation" doc:id="281b9a33-951b-413c-b7e3-5d754cfbf981" variableName="operation"/>
+								<flow-ref doc:name="error_store-orders" doc:id="7dde7977-4855-4a03-858d-6c619222d5d3" name="error_store-orders"/>
+							</on-error-continue>
+							<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="606d2f0d-5bdf-4c1d-b4d5-bc2acb84d4ce" >
+								<set-variable value="Create" doc:name="Set Operation" doc:id="9ee6fc39-dafa-443a-8aa2-3f703a7ade7e" variableName="operation" />
+							</on-error-propagate>
+						</error-handler>
+					</try>
+				</until-successful>
+				<logger level="INFO" doc:name="Logger" doc:id="6e9d1598-1100-4bd6-9f7a-747c233977b6" message="#[payload]"/>
+				<flow-ref doc:name="sales-order_update-sales-order-in-sap" doc:id="bbcd9e76-5e50-4d11-950b-e9ea74f6ec32" name="sales-order_update-sales-order-in-sap"/>
+			</when>
+				<when expression='#[payload.ORDERS05.IDOC.E1EDK01.ACTION == "CHG" or payload.ORDERS05.IDOC.E1EDK01.ACTION == "DEL"]'>
+				<ee:transform doc:name="Map Update Request" doc:id="c8862d06-9249-4d5c-a016-0dc666dbc0fb">
+			<ee:message>
+						<ee:set-payload resource="transforms/dwl/update-order.dwl" />
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="cc1ce042-ef4c-49d6-911f-954cbc198dd8" message="#[payload]"/>
+				<until-successful maxRetries="${until-successful.count}" doc:name="Until Successful" doc:id="5e6946cc-612a-4a9a-8f0a-76f7ab9a29e2" millisBetweenRetries="${until-successful.interval}">
+					<try doc:name="Try" doc:id="57e83f9b-fa97-4272-9d9c-c228e7d32333" >
+						<http:request method="PATCH" doc:name="Invoke Process API" doc:id="13c49da3-8142-4e11-96ec-cb870ba18eb2" config-ref="HTTP_Request_configuration" path="/" />
+						<error-handler >
+							<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="5585b545-768b-4dc9-9e68-b0e960c94cf0" type="HTTP:BAD_REQUEST, HTTP:METHOD_NOT_ALLOWED, HTTP:NOT_ACCEPTABLE, HTTP:PARSING, HTTP:SECURITY, HTTP:UNAUTHORIZED, HTTP:UNSUPPORTED_MEDIA_TYPE">
+								<set-variable value="Update" doc:name="Set Operation" doc:id="757fed74-87b8-47c7-a2e7-7af4d76f310b" variableName="operation" />
+								<flow-ref doc:name="error_store-orders" doc:id="94be76c2-a826-4a0d-bc1c-6537432979b8" name="error_store-orders" />
+							</on-error-continue>
+							<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="93ecc4ed-d13f-445f-ba1a-220bc80bdad2" >
+								<set-variable value="Update" doc:name="Set Operation" doc:id="70792d8a-3225-4563-804a-792611217e5b" variableName="operation" />
+							</on-error-propagate>
+						</error-handler>
+					</try>
+				</until-successful>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="ff912038-baa6-4155-8221-f210796efda5" message="No Matching Action Found"/>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8a96156b-1526-4465-be03-defe105c591f" >
+				<set-variable value="Create" doc:name="Set Operation" doc:id="0421209c-a069-43bb-b7a9-d2d1ec018012" variableName="operation" />
+				<flow-ref doc:name="error_store-orders" doc:id="ce4ea3fa-7bd2-41f1-97ca-3b874152a5e6" name="error_store-orders" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="sales-order_update-sales-order-in-sap" doc:id="f96ea9e2-d3d6-4b07-b047-dc5eec1dc61e">
+		<set-variable value="#[payload.orderID]" doc:name="Set OBO Order ID to Var" doc:id="61e547d5-4157-4ee8-828b-4b16fa37c36b" variableName="oboOrderID" />
+		<ee:transform doc:name="Set Original Payload" doc:id="1a202ac5-0c94-4c17-baeb-dae8e4d7223b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+vars.origPayload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Prepare BAPI request to update sales order" doc:id="a1ee6762-ac68-41dc-b48e-4f9f686d2e4e">
+      <ee:message>
+				<ee:set-payload resource="transforms/dwl/bapi-update-sales-order-request.dwl" />
+      </ee:message>
+    </ee:transform>
+    <logger level="INFO" doc:name="Logger" doc:id="180a1f35-78de-4ba9-b750-f2b372937c7c" message="#[payload]" />
+		<until-successful maxRetries="${until-successful.count}" doc:name="Until Successful" doc:id="9bf279c6-300b-4448-9cb4-d4995e999fbe" millisBetweenRetries="${until-successful.interval}">
+		<try doc:name="Try-call-to-update-sales-order" doc:id="398cba34-5147-4425-afc6-421c04612671" transactionalAction="ALWAYS_BEGIN">
+			<sap:sync-rfc doc:name="BAPI Call to Update Sales Order" doc:id="32c46187-5a56-4653-8000-685b3307e277" config-ref="SAP_Config" key="${sap.bapi.update-sales-order}" transactionalAction="ALWAYS_JOIN">
+						<reconnect frequency="${reconnect.sap.frequency}" count="${reconnect.sap.count}" />
+					</sap:sync-rfc>
+				<sap:sync-rfc key="${sap.bapi.bapi-transaction-commit}" doc:name="BAPI Transaction Commit" doc:id="0dedbaf4-3a06-4078-b029-1d848e6c1911" config-ref="SAP_Config" transactionalAction="ALWAYS_JOIN">
+						<reconnect frequency="${reconnect.sap.frequency}" count="${reconnect.sap.count}" />
+					</sap:sync-rfc>
+				<ee:transform doc:name="Convert to JSON" doc:id="32f134e1-09ff-414e-b292-2c1a4af98353">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				<set-variable value="#[payload.BAPI_SALESORDER_CHANGE.tables.RETURN.row.TYPE]" doc:name="Set Error Code" doc:id="d25341a5-a6a9-4a1e-a363-2bd7b7ee474f" variableName="bapiResponseCode" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8f870190-a861-456b-b862-57a52d7dc6a6" type="SAP:INVALID_CACHE, SAP:INVALID_INPUT, SAP:METADATA_UNAVAILABLE, SAP:NOT_FOUND, SAP:NOT_SUPPORTED, SAP:PARSING">
+						<set-variable value="Update" doc:name="Set Operation Vars" doc:id="0a536bdb-0466-434e-9c43-494a3eb87367" variableName="operation" />
+						<set-variable value="#[error.detailedDescription]" doc:name="Set Error Message" doc:id="1e49ab57-55d3-4b31-b62e-6754e8de617e" variableName="errorMsg" />
+						<set-variable value="#['E']" doc:name="Set Error Code" doc:id="e6708af6-898d-4d28-b307-8046b12e79af" variableName="bapiResponseCode" />
+					</on-error-continue>
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="015d2b82-c10d-448a-acb9-05f1d0afdcff">
+						<set-variable value="Update" doc:name="Set Operation Vars" doc:id="77d094f9-f771-4672-8b69-183c20577f44" variableName="operation" />
+						<set-variable value="#[error.detailedDescription]" doc:name="Set Error Message" doc:id="2a549693-0a1d-4421-a5fb-232eebe4bec9" variableName="errorMsg" />
+					</on-error-propagate>
+	</error-handler>
+		</try>
+		</until-successful>
+			<choice doc:name="Check for SAP response" doc:id="764d77b5-e316-442a-b7d6-478932cd62e6">
+			<when expression="#[vars.bapiResponseCode ~= 'E']">
+				<logger level="ERROR" doc:name="Error logging" doc:id="6669905f-0043-4ec8-b4a0-880c347fe71f" message="#[payload.BAPI_SALESORDER_CHANGE.tables.RETURN.row.MESSAGE]" />
+				<ee:transform doc:name="Error Message" doc:id="cff1f628-dc5b-4737-b8a8-0bc671593cf3">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="errorMsg"><![CDATA[%dw 2.0
+output application/java
+---
+payload.BAPI_SALESORDER_CHANGE.tables.RETURN.row.MESSAGE as String default null]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="error_store-orders" doc:id="653d3d4d-bfa9-41d1-a9d6-527ecabfc903" name="error_store-orders" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Show Sales order Create Response Payload" doc:id="acece27b-974c-4f75-a045-18d04f31eec9" message="#[payload.BAPI_SALESORDER_CHANGE.tables.RETURN.row.MESSAGE]" />
+				
+			</otherwise>
+		</choice>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="905806c5-80ac-445b-aa3f-432623d11189">
+				<ee:transform doc:name="Set JIRA Request" doc:id="83e0e4f1-1b81-4e76-87bc-4eb42c141e92">
+					<ee:message>
+						<ee:set-payload resource="transforms/dwl/jira-sap-update-failed.dwl" />
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="error_store-orders" doc:id="82e0a32d-df17-40ce-97f5-1c8a354609c3" name="error_store-orders" />
+			</on-error-propagate>
+		</error-handler>
+  </flow>	
+</mule>

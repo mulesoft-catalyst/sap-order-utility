@@ -1,0 +1,1 @@
+-M-XX:-UseBiasedLocking -M-Dfile.encoding=UTF-8 -M-XX:+UseG1GC -M-XX:+UseStringDeduplication -M-Dmule.verbose.exceptions=true -M-Druntime.key=1234567890123456 -M-Denv=local

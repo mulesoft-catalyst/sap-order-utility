@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="adea2b61-efbd-4ad5-9b14-03046ddd6bf0" />
+	<os:object-store name="Failed_IDOC_Object_Store" doc:name="Object store" doc:id="02dbd465-effc-4ea3-815e-a8fd1414b36b" config-ref="ObjectStore_Config" />
+	<sub-flow name="error_store-orders" doc:id="dbb04ec9-4a0e-4c62-abaf-aee754911f6f">
+		<set-payload value="#[vars.origPayload]" doc:name="Set Payload" doc:id="3172df40-6b63-4745-b83c-4a7419ca4007" />
+		<file:write doc:name="Write" doc:id="1a9b210f-c689-4af8-8195-9a74edc768e3" path="#[payload.ORDERS05.IDOC.E1EDK01.BELNR]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="12b2c039-c7c3-407c-a10e-6366b4a8410e" message="#['SAP Order' ++ payload.ORDERS05.IDOC.E1EDK01.BELNR ++ 'in Object Store']"/>
+		<ee:transform doc:name="Transform to JIRA Request" doc:id="a8f365da-13e0-4590-bdac-49a8ef7a7674" >
+			<ee:message >
+				<ee:set-payload resource="transforms/dwl/jira-issue.dwl" />
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:id="7c942331-ece4-4dc4-b55c-b5147cfac278" doc:name="Post Error To JIRA" config-ref="HTTP_Request_configuration" path="/"/>
+</sub-flow>
+</mule>
